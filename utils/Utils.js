@@ -16,10 +16,16 @@ export async function readInput(inputFile) {
         });
         for await (const line of rl) {
             list.push(line);
-          }
+        }
     } catch (error) {
         console.error(`Error al procesar el archivo: ${error.message}`);
     }
 
     return list;
-} 
+}
+
+export function log(row, col, text) {
+    process.stdout.write("\x1b[" + row + ";" + col + "H");
+    process.stdout.write(text);
+}
+
