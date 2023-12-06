@@ -67,6 +67,10 @@ function solveB(list) {
             */
             if (closestLocation === -1 || location < closestLocation) {
                 closestLocation = location;
+                console.log("seed:", seed, "soil:", soil, "fertilizer:", fertilizer,
+                "water:", water, "light:", light, "temperature:", temperature,
+                "humidity:", humidity, "location:", location);
+                
             }
             seed = seedRange.nextSeed();
         }
@@ -183,7 +187,10 @@ function map(src, transformers) {
     let destination = src;
     transformers.forEach(transformer => {
         const dst = transformer.transform(src);
-        if (dst != src) destination = dst;
+        if (dst != src) {
+            destination = dst;
+            return;
+        }
     });
     return destination;
 }
