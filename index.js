@@ -3,6 +3,7 @@ import { program_2_A0, program_2_A, program_2_B0, program_2_B } from "./02/progr
 import { program_3_A0, program_3_A, program_3_B0, program_3_B } from "./03/program.js";
 import { program_4_A0, program_4_A, program_4_B0, program_4_B } from "./04/program.js";
 import { program_5_A0, program_5_A, program_5_B0, program_5_B } from "./05/program.js";
+import { program_6_A0, program_6_A, program_6_B0, program_6_B } from "./06/program.js";
 console.log("##### Day 01 #####");
 console.log("\tProblem A: ", await program_1_A());
 console.log("\tProblem B: ", await program_1_B());
@@ -17,4 +18,8 @@ console.log("\tProblem A: ", await program_4_A());
 console.log("\tProblem B: ", await program_4_B());
 console.log("##### Day 05 #####");
 console.log("\tProblem A: ", await program_5_A());
-console.log("\tProblem B: ", await program_5_B0());
+console.log("\tProblem B: es un 'brute force' que tarda horas y que tengo que rehacer");
+//console.log("\tProblem B: ", await program_5_B());
+console.log("##### Day 06 #####");
+console.log("\tProblem A: ", await program_6_A());
+console.log("\tProblem B: ", await program_6_B());
