@@ -25,25 +25,72 @@ export async function program_8_B() {
 function solveA(list) {
     let total = 0;
     const problem = parseProblem(list, "A");
-    let nodes = problem.startingPoints;
-    for (let i = 0; !endConditionA(nodes); i = (i + 1) % problem.directions.length) {
+    let node = problem.nodes["AAA"];
+    for (let i = 0; !endConditionA(node); i = (i + 1) % problem.directions.length) {
         const direction = problem.directions[i];
-        nodes = runOneStep(problem, nodes, direction);
+        node = runOneStepA(problem, node, direction);
         total++;
     }
     return total;
 }
 
-function solveB(list) {
+// Esto funciona, pero no acaba en un tiempo razonable
+function solveB_bruteForce(list) {
     let total = 0;
     const problem = parseProblem(list, "B");
     let nodes = problem.startingPoints;
     for (let i = 0; !endConditionB(nodes); i = (i + 1) % problem.directions.length) {
         const direction = problem.directions[i];
-        nodes = runOneStep(problem, nodes, direction);
+        nodes = runOneStepB(problem, nodes, direction);
         total++;
     }
     return total;
+}
+
+
+function solveB(list) {
+    // El problema B hay que tratarlo de manera radicalmente diferente
+    // del problema A, porque de lo contrario, el tiempo que se tarda en resolverlo
+    // es enorme.
+    // Para resolver el problema B, hay que "jugar" con el input y darse cuenta que:
+    // Hay 6 nodos "iniciales", donde empieza la iteración (DVA, MPA, TDA, AAA, FJA y XPA)
+    // También hay 6 nodos "finales" (DGZ, MVZ, CJZ, MSZ, ZZZ, y QFZ).
+    // Iterar los 6 nodos a la vez (como pide en enunciado) hasta que las 6 iteraciones
+    // (A LA VEZ) lleguen a un nodo final es un problema de fuerza bruta inabarcable.
+    // Lo que he hecho aquí, como preparación, es iterar cada nodo "inicial" por separado
+    // y de manera indefinida, intentando buscar algunos patrones, y esto es lo que he averiguado:
+    // Una iteración que empiece por DVA, recorre sólo 159 nodos distintos (de los 793 nodos del 
+    // problema), y el recorrido alcanza el nodo "final" MSZ tras 23147 pasos, tras lo cual
+    // vuelve a empezar el mismo ciclo de iteraciones, y así indefinidamente.
+    // Empezando por MPA, se recorren sólo 135 nodos distintos, y se alcanza el nodo final DGZ
+    // tras 19631 iteraciones, tras lo cual el ciclo vuelve a empezar.
+    // Lo mismo ocurre con el resto:
+    //
+    // INICIAL  NODOS_DISTINTOS FINAL   PERIODO
+    // DVA      159             MSZ     23147
+    // MPA      135             DGZ     19631
+    // TDA      87              MVZ     12599
+    // AAA      147             ZZZ     21389
+    // FJA      123             CJZ     17873
+    // XPA      143             QFZ     20803
+    //
+    // Gracias a este comportamiento cíclico del problema podemos saber que si, tal como pide el 
+    // enunciado, la iteración empieza desde los 6 nodos a la vez, y se detiene cuando los 6 recorridos
+    // *a la vez* alcanzan un nodo final, ésto sólo pasará cuando transcurra un número de pasos igual 
+    // al mínimo común múltiplo de los 6 periodos (un número gigante: 21.083.806.112.641). 
+
+    const problem = parseProblem(list, "B");
+
+    // Primero calculamos los 6 periodos por separado
+    const periodos = [];
+    problem.startingPoints.forEach(startingNode => {
+        const periodo = calcularPeriodo(problem, startingNode);
+        periodos.push(periodo);
+    });
+
+    // Ahora calculamos el mínimo comun múltiplo de los periodos
+    let total = mcm(periodos);
+    return total;    
 }
 
 function parseProblem(list, step) {
@@ -65,6 +112,8 @@ function parseNodes(lines) {
     for (let i = 2; i < lines.length; i++) {
         const strNode = lines[i];
         const node = {
+            visited: false,
+            lastIterationVisited: 0,
             label: "",
             nextLeft: "",
             nextRight: "",
@@ -104,16 +153,12 @@ function findStartingPointsB(problem) {
             result.push(node);
         }
     }
-    return result
+    return result;
 }
 
 
-function endConditionA(nodes) {
-    let result = true;
-    for (let i = 0; i < nodes.length; i++) {
-        result = result && nodes[i].label === "ZZZ";
-    }
-    return result;
+function endConditionA(node) {    
+    return node.label === "ZZZ";
 }
 
 function endConditionB(nodes) {
@@ -124,20 +169,53 @@ function endConditionB(nodes) {
     return result;
 }
 
-let maxZetas = 0;
-function runOneStep(problem, nodes, direction) {
+function runOneStepA(problem, node, direction) {
+    const nextLabel = node.next(direction);
+    const nextNode = problem.nodes[nextLabel];
+    return nextNode;
+}
+
+function runOneStepB(problem, nodes, direction) {
     const result = [];
-    let ends = "";
     nodes.forEach(node => {
         const nextLabel = node.next(direction);
         const nextNode = problem.nodes[nextLabel];
         result.push(nextNode);
-        ends += nextLabel[2];
     });
-    let i=0; for (var c of ends) if (c==="Z") i++;
-    if (i>maxZetas) maxZetas=i;
-    log(3, 20, "max zetas: "+maxZetas);
     return result;
 }
 
+function calcularPeriodo (problem, startingNode) {
+    let x = 0;
+    let nodes = [startingNode];
+    for (let i = 0; !endConditionB(nodes); i = (i + 1) % problem.directions.length) {
+        const direction = problem.directions[i];
+        nodes = runOneStepB(problem, nodes, direction);        
+        x++;
+    }
+    return x;
+}
 
+function mcd2(a, b) {
+    // Máximo comun divisor de 2 enteros
+    if (!b) return b === 0 ? a : NaN;
+    return mcd2(b, a % b);
+}
+function mcd(array) {
+    // Máximo cimun divisor de un array de enteros
+    var n = 0;
+    for (var i = 0; i < array.length; ++i)
+        n = mcd2(array[i], n);
+    return n;
+}
+function mcm2(a, b) {
+    // mínimo comun múltiplo de 2 enteros
+    return a * b / mcd2(a, b);
+}
+function mcm(array) {
+    // Mínimo común múltiplo de una lista de enteros
+    var n = 1;
+    for (var i = 0; i < array.length; ++i)
+        n = mcm2(array[i], n);
+    return n;
+}

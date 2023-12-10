@@ -29,5 +29,5 @@ console.log("##### Day 07 #####");
 console.log("\tProblem A: ", await program_7_A());
 console.log("\tProblem B: ", await program_7_B());
 console.log("##### Day 08 #####");
-//console.log("\tProblem A: ", await program_8_A());
+console.log("\tProblem A: ", await program_8_A());
 console.log("\tProblem B: ", await program_8_B());
