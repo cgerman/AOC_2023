@@ -124,13 +124,19 @@ function endConditionB(nodes) {
     return result;
 }
 
+let maxZetas = 0;
 function runOneStep(problem, nodes, direction) {
     const result = [];
+    let ends = "";
     nodes.forEach(node => {
         const nextLabel = node.next(direction);
         const nextNode = problem.nodes[nextLabel];
         result.push(nextNode);
+        ends += nextLabel[2];
     });
+    let i=0; for (var c of ends) if (c==="Z") i++;
+    if (i>maxZetas) maxZetas=i;
+    log(3, 20, "max zetas: "+maxZetas);
     return result;
 }
 
