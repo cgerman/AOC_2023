@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/cgerman/AOC_2023#readme",
   "dependencies": {
+    "chalk": "^5.3.0",
     "mnemonist": "^0.39.5"
   }
 }

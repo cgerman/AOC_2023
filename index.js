@@ -39,4 +39,4 @@ console.log("\tProblem A: ", await program_9_A());
 console.log("\tProblem B: ", await program_9_B());
 console.log("##### Day 10 #####");
 console.log("\tProblem A: ", await program_10_A());
-console.log("\tProblem B: ", await program_10_B0());
+console.log("\tProblem B: ", await program_10_B());
