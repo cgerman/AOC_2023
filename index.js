@@ -8,6 +8,7 @@ import { program_7_A0, program_7_A, program_7_B0, program_7_B } from "./07/progr
 import { program_8_A0, program_8_A, program_8_B0, program_8_B } from "./08/program.js";
 import { program_9_A0, program_9_A, program_9_B0, program_9_B } from "./09/program.js";
 import { program_10_A0, program_10_A, program_10_B0, program_10_B } from "./10/program.js";
+import { program_11_A0, program_11_A, program_11_B0, program_11_B } from "./11/program.js";
 
 console.log("##### Day 01 #####");
 console.log("\tProblem A: ", await program_1_A());
@@ -40,3 +41,6 @@ console.log("\tProblem B: ", await program_9_B());
 console.log("##### Day 10 #####");
 console.log("\tProblem A: ", await program_10_A());
 console.log("\tProblem B: ", await program_10_B());
+console.log("##### Day 11 #####");
+console.log("\tProblem A: ", await program_11_A());
+console.log("\tProblem B: ", await program_11_B());
