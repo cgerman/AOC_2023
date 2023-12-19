@@ -28,7 +28,8 @@ function solveA(list) {
     const problem = parseProblemA(list);
 
     problem.rows.forEach(row => {
-        const nArrangements = countArrangements(row.originalTemplate, row.template, row.regexp);
+        const nArrangements = countArrangements2(row.originalTemplate, row.template, row.regexp);
+        //console.log(row.originalTemplate, " ==> ", nArrangements, "arrangements")
         total += nArrangements;
     });
 
@@ -40,8 +41,8 @@ function solveB(list) {
     const problem = parseProblemB(list);
 
     problem.rows.forEach(row => {
-        console.log(row.originalTemplate, chalk.yellow(" -- "), row.regexp)
-        const nArrangements = countArrangements(row.originalTemplate, row.template, row.regexp);
+        const nArrangements = countArrangements2(row.originalTemplate, row.template, row.regexp);
+        //console.log(row.originalTemplate, " ==> ", nArrangements, "arrangements")
         total += nArrangements;
     });
 
@@ -107,15 +108,10 @@ function unfoldRegexp(str) {
     return result;
 }
 
-const memory = {};
-
 function countArrangements(originalTemplate, template, regexp) {
-    // Miramos en la memoria a ver si ya hemos calculado estas template y regex
-    const strTemplate = template.reduce((str, c) => str + c, "");
-    const key = strTemplate+" ["+regexp+"]";
-    const n = memory[key];
+    // Miramos en la memoria a ver si ya hemos calculado estas template y regex    
+    const n = fromMemory(originalTemplate, template, regexp);
     if (n != undefined) {
-        console.log("memorized: ", strTemplate, " -- ", n, "arrangements");
         return n;
     }
 
@@ -129,7 +125,6 @@ function countArrangements(originalTemplate, template, regexp) {
             if (template[i] === "#") xBroken++;
             if (template[i] === "?") {
                 xQuestion++;
-                //template[i] = ".";
             }
         }
         if (xBroken > 1) return templateSatisfiesRegexp(originalTemplate, template, regexp, 0);
@@ -151,31 +146,26 @@ function countArrangements(originalTemplate, template, regexp) {
                     return templateSatisfiesRegexp(originalTemplate, template, regexp, 0); // template no satisface regexp
                 }
             }
-
-            // sustituimos en template "?" por "#" hasta que el número de "#" sea igual a nBroken
-            let broken = new Array(nBroken).fill("#");
-            //template.splice(i, nBroken, ...broken);
             i += nBroken;
-            regexp = regexp.slice(1);
 
             // Tras "consumir" el numero de broken springs, si no estamos al final, viene por lo menos un "."
-            if (regexp.length > 0) {
+            if (regexp.length > 1) {
                 if (template[i] === "#") {
-                    return 0; // template no satisface regexp
+                    return templateSatisfiesRegexp(originalTemplate, template, regexp, 0); // template no satisface regexp
                 }
-                //template[i] = ".";
                 i++;
             } else {
                 // Y si estamos al final, entonces todo tienen que ser . o ? (que pasan a .)
                 for (let j = i; j < template.length; j++) {
                     if (template[j] === "#") {
                         return templateSatisfiesRegexp(originalTemplate, template, regexp, 0);
-                    } else {
-                        template[j] = ".";
                     }
                 }
                 i = template.length;
             }
+
+            regexp = regexp.slice(1);
+
         } else { // template[i] === "?"
             // sustituimos el ? por un # y contamos los arrangements que quedan
             let template2 = ["#"].concat(template.slice(i + 1));
@@ -183,27 +173,103 @@ function countArrangements(originalTemplate, template, regexp) {
             // sustituimos el ? por un . y contamos los arrangements que quedan
             template2 = ["."].concat(template.slice(i + 1));
             total += countArrangements(originalTemplate, template2, regexp);
-            return templateSatisfiesRegexp(originalTemplate, template, regexp, total);
+            return total;
         }
     }
 
     if (regexp.length > 0) {
         // Si hemos llegado al final de template y todavía no hemos consumido todos
         // los grupos de broken de regexp, template no satisface regexp
-        return templateSatisfiesRegexp(originalTemplate, template, regexp, 0);
+        return 0;
     }
     total++;
 
     return templateSatisfiesRegexp(originalTemplate, template, regexp, total);
 }
 
-function templateSatisfiesRegexp(originalTemplate, template, regexp, n) {
-    const strTemplate = template.reduce((str, c) => str + c, "");
-    const key = strTemplate+" ["+regexp+"]";
-    memory[key] = n;
-    if (originalTemplate === strTemplate) {
-        console.log(strTemplate, " ==> ", n, "arrangements");
+
+function countArrangements2(originalTemplate, template, regexp) {
+    // Miramos en la memoria a ver si ya hemos calculado estas template y regex    
+    const n = fromMemory(originalTemplate, template, regexp);
+    if (n != undefined) {
+        return n;
     }
+
+    // Acortamos el caso de que regexp sea [1]. En ese caso, si template tiene
+    // - exactamente un broken ==> arrangements = 1 (todos los ? pasan a .)
+    // - > 1 broken ==> 0 arrangements
+    // - 0 brokens ==> hay tantos arrangements como ?
+    if (regexp.length == 1 && regexp[0] === 1) {
+        let xBroken = 0, xQuestion = 0;
+        for (let i = 0; i < template.length; i++) {
+            if (template[i] === "#") xBroken++;
+            if (template[i] === "?") {
+                xQuestion++;
+            }
+        }
+        if (xBroken > 1) return templateSatisfiesRegexp(originalTemplate, template, regexp, 0);
+        if (xBroken === 1) return templateSatisfiesRegexp(originalTemplate, template, regexp, 1);
+        return templateSatisfiesRegexp(originalTemplate, template, regexp, xQuestion);
+    }
+
+    let pos = 0;
+    if (template[pos] === ".") {
+        // Saltamos los puntos
+        while (template[pos] === ".") pos++;
+    }
+    if (pos >= template.length) {
+        // Si hemos llegado al final de template
+        return templateSatisfiesRegexp(originalTemplate, template, regexp, 0); // template no satisface regexp
+    }
+
+    if (template[pos] === "#") {
+        const nBroken = regexp[0];
+        if (pos + nBroken > template.length) {
+            return templateSatisfiesRegexp(originalTemplate, template, regexp, 0); // template no satisface regexp
+        }
+        for (let j = 0; j < nBroken; j++) {
+            if (template[pos + j] === ".") {
+                return templateSatisfiesRegexp(originalTemplate, template, regexp, 0); // template no satisface regexp
+            }
+        }
+        pos += nBroken;
+
+        // Tras "consumir" el numero de broken springs, si no estamos al final, viene por lo menos un "."
+        if (regexp.length > 1) {
+            if (template[pos] === "#") {
+                return templateSatisfiesRegexp(originalTemplate, template, regexp, 0); // template no satisface regexp
+            }
+            pos++;
+        } else {
+            // Y si estamos al final de regexp, entonces todo tienen que ser . o ? (que pasan a .)
+            for (let j = pos; j < template.length; j++) {
+                if (template[j] === "#") {
+                    return templateSatisfiesRegexp(originalTemplate, template, regexp, 0);
+                }
+            }
+            pos = template.length;
+            // ya hemos acabado template y regex, por tanto template satisface regexp
+            return templateSatisfiesRegexp(originalTemplate, template, regexp, 1);
+        }
+        return countArrangements2(originalTemplate, template.slice(pos), regexp.slice(1));
+    }
+
+    if (template[pos] === "?") {
+        let total = 0;
+        // sustituimos el ? por un # y contamos los arrangements que quedan
+        let template2 = ["#"].concat(template.slice(pos + 1));
+        total += countArrangements2(originalTemplate, template2, regexp);
+        // sustituimos el ? por un . y contamos los arrangements que quedan
+        template2 = ["."].concat(template.slice(pos + 1));
+        total += countArrangements2(originalTemplate, template2, regexp);
+        return templateSatisfiesRegexp(originalTemplate, template, regexp, total);
+    }
+    throw new Error("No se puede llegar aquí");
+}
+
+
+function templateSatisfiesRegexp(originalTemplate, template, regexp, n) {
+    toMemory(originalTemplate, template, regexp, n);
     return n;
 }
 
@@ -265,4 +331,29 @@ function buildRegexp(brokenArray) {
     });
     str = str.substring(0, str.length - 1) + "*$";
     return new RegExp(str);
+}
+
+// #######################
+
+const memory = {};
+
+function toMemory(originalTemplate, template, regexp, n) {
+    const strTemplate = template.reduce((str, c) => str + c, "");
+    const key = strTemplate + " [" + regexp + "]";
+    memory[key] = n;
+    //console.log("To memory:", key, " -- ", n, "arrangements")
+}
+
+function fromMemory(originalTemplate, template, regexp) {
+    const strTemplate = template.reduce((str, c) => str + c, "");
+    const key = strTemplate + " [" + regexp + "]";
+    const n = memory[key];
+    if (n != undefined) {
+        //console.log("From memory: ", key, " -- ", n, "arrangements");
+    }
+    return n;
+}
+
+function clearMemory() {
+    memory = {};
 }

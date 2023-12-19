@@ -46,5 +46,5 @@ console.log("##### Day 11 #####");
 console.log("\tProblem A: ", await program_11_A());
 console.log("\tProblem B: ", await program_11_B());
 console.log("##### Day 12 #####");
-console.log("\tProblem A: ", await program_12_A0());
-//console.log("\tProblem B: ", await program_12_B0());
+console.log("\tProblem A: ", await program_12_A());
+console.log("\tProblem B: ", await program_12_B());
