@@ -10,6 +10,7 @@ import { program_9_A0, program_9_A, program_9_B0, program_9_B } from "./09/progr
 import { program_10_A0, program_10_A, program_10_B0, program_10_B } from "./10/program.js";
 import { program_11_A0, program_11_A, program_11_B0, program_11_B } from "./11/program.js";
 import { program_12_A0, program_12_A, program_12_B0, program_12_B } from "./12/program.js";
+import { program_13_A0, program_13_A, program_13_B0, program_13_B } from "./13/program.js";
 
 console.log("##### Day 01 #####");
 console.log("\tProblem A: ", await program_1_A());
@@ -48,3 +49,6 @@ console.log("\tProblem B: ", await program_11_B());
 console.log("##### Day 12 #####");
 console.log("\tProblem A: ", await program_12_A());
 console.log("\tProblem B: ", await program_12_B());
+console.log("##### Day 13 #####");
+console.log("\tProblem A: ", await program_13_A0());
+console.log("\tProblem B: ", await program_13_B0());
