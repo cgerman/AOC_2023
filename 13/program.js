@@ -100,7 +100,7 @@ class Pattern {
                 line += row[x];
                 if (this.mirror < 100 && x + 1 === this.mirror) {
                     line += "|";
-                }
+                } else line += " ";
             }
             result += line + " " + (y + 1) + "\n";
             if (this.mirror > 100 && y + 1 === this.mirror) {
