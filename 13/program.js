@@ -44,9 +44,9 @@ function solveB(list) {
         // y ver si hay newMirror diferente de oldMirror 
         solvePattern(pattern);
         const n = solvePattern2(pattern);
-        console.log(pattern.toString() + "\n" +
+        console.log(pattern.toString(n) + "\n" +
             "newMirror: " + n + "\n" +
-            "smudge: " + pattern.smudge + "\n");
+            "smudge: " + (pattern.smudge ? pattern.smudge.toString() : "-") + "\n");
         total += n;
     });
 
@@ -91,24 +91,39 @@ class Pattern {
         return transpuesta;
     }
 
-    toString() {
+    toString(mirror) {
         let result = "";
         for (let y = 0; y < this.matrix.length; y++) {
             const row = this.matrix[y];
             let line = (y + 1).toString().padStart(2, " ") + " ";
             for (let x = 0; x < row.length; x++) {
-                line += row[x];
-                if (this.mirror < 100 && x + 1 === this.mirror) {
+                if (this.isSmudge(x, y, mirror)) {
+                    line += chalk.inverse(row[x]);
+                } else {
+                    line += row[x];
+                }
+                if (mirror < 100 && x + 1 === mirror) {
                     line += "|";
                 } else line += " ";
             }
             result += line + " " + (y + 1) + "\n";
-            if (this.mirror > 100 && y + 1 === this.mirror) {
-                result += "   " + Array(row.length).fill("-");
+            if (mirror > 100 && (y + 1) * 100 === mirror) {
+                result += "---" + "--".repeat(row.length) + "---\n";
             }
         }
         return result +
             (this.mirror ? "oldMirror: " + this.mirror : "");
+    }
+
+    isSmudge(x, y, mirror) {
+        if (!this.smudge) return false;
+        if (mirror > 100) {
+            return this.smudge.x === x && this.smudge.y === y;
+        } else {
+            const yy = x;
+            const xx = this.matrix.length - 1 - y;
+            return this.smudge.x === xx && this.smudge.y === yy;
+        }
     }
 }
 
@@ -123,10 +138,10 @@ function matrixToString(matrix) {
 
 function solvePattern(pattern) {
     // Primero examina horizontalmente y, si no encuentra espejo, examina verticalmente
-    let solution = 100 * solveMatrix(pattern.matrix);
+    let solution = solveMatrix(pattern.matrix, 100);
     if (solution === 0) {
         const transpuesta = pattern.transpon();
-        solution = solveMatrix(transpuesta);
+        solution = solveMatrix(transpuesta, 1);
     }
     pattern.mirror = solution;
     return solution;
@@ -134,7 +149,7 @@ function solvePattern(pattern) {
 
 // Busca el espejo en la matriz recibida, y devuelve el número de filas arriba del espejo
 // Devuelve 0 si no encuentra el espejo. 
-function solveMatrix(matrix) {
+function solveMatrix(matrix, factor, avoid) {
     // Recorremos las filas de matrix buscando dos filas iguales contiguas
     let i = 0;
     for (; i < matrix.length - 1; i++) {
@@ -144,8 +159,8 @@ function solveMatrix(matrix) {
             // y así indefinidamente hasta que llegamos a un borde de matrix.
             // Por claridad, resolveremos ésto en una función a parte.
             const espejo = comprobarEspejo(matrix, i);
-            if (espejo) {
-                return i + 1;
+            if (espejo && factor * (i + 1) != avoid) {
+                return factor * (i + 1);
             }
         }
     }
@@ -188,13 +203,11 @@ function flip(matrix, row, col) {
 
 function solvePattern2(pattern) {
     // Primero examina horizontalmente y, si no encuentra espejo, examina verticalmente
-    let oldMirror = pattern.mirror > 100 ? pattern.mirror / 100 : undefined;
-    let solution = solveMatrix2(pattern.matrix, oldMirror);
-    let newMirror = 100 * solution.mirror;
+    let solution = solveMatrix2(pattern.matrix, 100, pattern.mirror);
+    let newMirror = solution.mirror;
     if (newMirror === 0) {
         const transpuesta = pattern.transpon();
-        oldMirror = pattern.mirror > 100 ? undefined : pattern.mirror;
-        solution = solveMatrix2(transpuesta, oldMirror);
+        solution = solveMatrix2(transpuesta, 1, pattern.mirror);
         newMirror = solution.mirror;
     }
     if (solution.smudge) {
@@ -203,17 +216,17 @@ function solvePattern2(pattern) {
     return newMirror;
 }
 
-function solveMatrix2(matrix, oldMirror) {
+function solveMatrix2(matrix, factor, oldMirror) {
     // Provocamos un "smudge" en cada punto de la matriz, y comprobamos si hay espejo en 
     // la matriz resultante que dea diferente de oldMirror
     for (let y = 0; y < matrix.length; y++) {
         for (let x = 0; x < matrix[0].length; x++) {
             flip(matrix, y, x);
-            const n = solveMatrix(matrix);
+            const n = solveMatrix(matrix, factor, oldMirror);
             // deshacemos el "flip"
             flip(matrix, y, x);
             if (n > 0 && n != oldMirror) {
-                return { mirror: n, smudge: "[y=" + y + ", x=" + x + "]" };
+                return { mirror: n, smudge: { y, x, toString: function () { return "[x=" + this.x + ", y=" + this.y + "]" } } };
             }
         }
     }
