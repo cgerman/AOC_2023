@@ -44,9 +44,9 @@ function solveB(list) {
         // y ver si hay newMirror diferente de oldMirror 
         solvePattern(pattern);
         const n = solvePattern2(pattern);
-        console.log(pattern.toString(n) + "\n" +
+         /*console.log(pattern.toString(n) + "\n" +
             "newMirror: " + n + "\n" +
-            "smudge: " + (pattern.smudge ? pattern.smudge.toString() : "-") + "\n");
+            "smudge: " + (pattern.smudge ? pattern.smudge.toString() : "-") + "\n"); */
         total += n;
     });
 
